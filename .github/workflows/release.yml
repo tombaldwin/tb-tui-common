@@ -1,0 +1,36 @@
+name: release
+
+# Publish tb-tui-common to crates.io on a version tag.
+#
+# A library crate has no binaries to build or attach, so this is just a
+# guarded `cargo publish`. Gated on the `CARGO_REGISTRY_TOKEN` repo
+# secret — when it's unset (forks / scratch checkouts that don't own the
+# crate) the step skips rather than failing. crates.io can't be
+# unpublished, so keep the tag deliberate.
+#
+# Bump `version` in Cargo.toml, tag `vX.Y.Z`, push the tag.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  crates_io:
+    name: publish to crates.io
+    if: ${{ !github.event.repository.fork }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          if [ -z "${CARGO_REGISTRY_TOKEN:-}" ]; then
+            echo "CARGO_REGISTRY_TOKEN not set — skipping crates.io publish"
+            exit 0
+          fi
+          cargo publish --locked
