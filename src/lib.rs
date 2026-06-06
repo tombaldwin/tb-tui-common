@@ -6,6 +6,8 @@
 //!   user's font renders Powerline / Nerd Font glyphs at one cell each.
 //! - [`overlay`] — centred-popup sizing (`OverlaySize` categories +
 //!   `centered_overlay` / `centered_rect` helpers).
+//! - [`text_input`] — single-line editable buffer with a cursor
+//!   ([`TextInput`]) for modal prompts / filter / command lines.
 //!
 //! What does *not* live here: anything app-specific (AWS SDK clients,
 //! Postgres connection code, EB-flavoured theme palettes, …). Pure
@@ -14,5 +16,8 @@
 pub mod font_probe;
 pub mod overlay;
 pub mod splash;
+pub mod text_input;
 pub mod theme;
 pub mod util;
+
+pub use text_input::TextInput;
