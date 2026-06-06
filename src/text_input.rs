@@ -129,12 +129,15 @@ impl TextInput {
 
     /// Apply a single editing keypress. Returns `true` if the key was an
     /// editing action (consumed), `false` if the caller should handle it
-    /// (Enter/Esc/Tab/…). `Ctrl`/`Alt`-modified keys other than the
-    /// recognised emacs-style chords are left unhandled so global chords
-    /// still reach the dispatcher.
+    /// (Enter/Esc/Tab/…). `Ctrl`/`Alt`/`Super`-modified keys other than
+    /// the recognised emacs-style chords are left unhandled so global
+    /// chords (and OS shortcuts like Cmd+V on terminals that report the
+    /// Super modifier) still reach the dispatcher rather than being typed
+    /// as text.
     pub fn handle_key(&mut self, key: KeyEvent) -> bool {
         let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
         let alt = key.modifiers.contains(KeyModifiers::ALT);
+        let logo = key.modifiers.contains(KeyModifiers::SUPER);
         match key.code {
             KeyCode::Backspace => self.backspace(),
             KeyCode::Delete => self.delete_forward(),
@@ -145,7 +148,7 @@ impl TextInput {
             KeyCode::Char('w') if ctrl => self.delete_word_back(),
             KeyCode::Char('a') if ctrl => self.home(),
             KeyCode::Char('e') if ctrl => self.end(),
-            KeyCode::Char(c) if !ctrl && !alt => self.insert(c),
+            KeyCode::Char(c) if !ctrl && !alt && !logo => self.insert(c),
             _ => return false,
         }
         true
@@ -280,6 +283,20 @@ mod tests {
         // A Ctrl-modified char that isn't a known chord is left alone.
         assert!(!t.handle_key(ctrl('t')));
         assert_eq!(t.text(), "");
+    }
+
+    #[test]
+    fn handle_key_ignores_super_modified_chars() {
+        // Super/Cmd-modified chars (e.g. Cmd+V on terminals that report
+        // the modifier) must NOT be typed as text — they belong to the
+        // OS / global dispatcher.
+        let mut t = TextInput::new();
+        let cmd_v = KeyEvent::new(KeyCode::Char('v'), KeyModifiers::SUPER);
+        assert!(!t.handle_key(cmd_v), "Super+char should not be consumed");
+        assert_eq!(t.text(), "", "Super+char must not be inserted");
+        // Plain char still inserts.
+        assert!(t.handle_key(key(KeyCode::Char('v'))));
+        assert_eq!(t.text(), "v");
     }
 
     #[test]
