@@ -1,0 +1,12 @@
+# candor effect policy for tb-tui-common.
+#
+# This is a SHARED TUI library — it must stay reusable across more than one app, which means it must
+# never reach an APP-COUPLING effect: the network, a database, a subprocess, or IPC. (Those belong in
+# the app, or are injected via a trait/callback.) Filesystem + clock are allowed — they're legitimate
+# util helpers here (`util::write_atomic`).
+#
+# Enforced in CI by ci/candor-check.sh using the stable scanner (`cargo install candor-scan`), so no
+# nightly toolchain is needed. This same rule is also readable by the full nightly candor lint via
+# `cargo candor policy` (AS-EFF-006) if you have it installed.
+
+deny Net Db Exec Ipc

@@ -55,3 +55,18 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.91
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --locked
+
+  candor:
+    # Effect-boundary gate: this is a SHARED TUI library, so it must never reach an app-coupling effect
+    # (network / database / subprocess / IPC) — that's what keeps it reusable. Enforced with candor's
+    # STABLE scanner (no nightly), installed from crates.io. See .candor/policy + ci/candor-check.sh.
+    name: candor (effect boundary)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: install candor-scan
+        run: cargo install candor-scan --locked
+      - name: enforce effect boundary (deny Net/Db/Exec/Ipc)
+        run: bash ci/candor-check.sh
