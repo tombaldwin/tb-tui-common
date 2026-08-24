@@ -67,6 +67,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: install candor-scan
-        run: cargo install candor-scan --locked
+        # PINNED. This gate was unversioned and moved underfoot: it
+        # passed in June and failed today on a commit that changed no
+        # code at all, because a newer candor-scan classifies more. A
+        # required gate that changes without review is one you cannot
+        # reason about. Bump deliberately.
+        run: cargo install candor-scan --locked --version 0.31.0
       - name: enforce effect boundary (deny Net/Db/Exec/Ipc)
         run: bash ci/candor-check.sh

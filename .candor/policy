@@ -9,4 +9,13 @@
 # nightly toolchain is needed. This same rule is also readable by the full nightly candor lint via
 # `cargo candor policy` (AS-EFF-006) if you have it installed.
 
+# `font_probe` is exempt from Ipc, and the exemption is narrow on
+# purpose. It writes a glyph to the terminal and reads the cursor
+# position back — a conversation with another process, hence Ipc — but
+# that process is the terminal, and asking the terminal what it can
+# render is exactly what a shared TUI library is for. Pushing it into
+# each consuming app would duplicate it everywhere, which is what this
+# policy exists to prevent. Enforced in ci/candor-check.sh.
+#
+# Nothing else may reach Ipc, and nothing at all may reach Net/Db/Exec.
 deny Net Db Exec Ipc
