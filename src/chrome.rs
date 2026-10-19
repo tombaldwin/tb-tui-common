@@ -206,8 +206,19 @@ pub fn hints_to_fit(line: &str, available: u16) -> String {
         out.push_str(if out.is_empty() { " " } else { "  " });
         out.push_str(hint);
     }
+    // Cut by display width, not by char: a wide glyph is two cells,
+    // and counting it as one leaves the line wider than `available`.
     if width(&out) > available {
-        out = out.chars().take(available).collect();
+        let mut cut = String::new();
+        for ch in out.chars() {
+            let mut next = cut.clone();
+            next.push(ch);
+            if width(&next) > available {
+                break;
+            }
+            cut = next;
+        }
+        out = cut;
     }
     out
 }
@@ -282,6 +293,15 @@ mod tests {
             " j/k",
             "the first hint stays, cut to fit"
         );
+    }
+
+    #[test]
+    fn a_hint_wider_than_the_line_is_cut_to_display_width() {
+        // Each 日 is two cells: a char count keeps " 日日日" — seven
+        // cells — in a four-cell line.
+        let cut = hints_to_fit(" 日日日日日日", 4);
+        assert!(Span::raw(cut.as_str()).width() <= 4, "{cut:?}");
+        assert_eq!(cut, " 日");
     }
 
     #[test]
