@@ -65,14 +65,14 @@ pub fn rounded_block(c: &Chrome, active: bool) -> Block<'static> {
 }
 
 /// A panel title as it sits in the border: `[ ◆ name ◆ ]`, `[ name ]`
-/// in ascii, rounded powerline caps in Powerline.
+/// in ascii, and ` name ` in Powerline — no caps. The rounded caps
+/// (U+E0B6 / U+E0B4) were tried and dropped: ebman never rendered them,
+/// and in pgman they read as clutter on every panel.
 pub fn decorate_title(icons: IconStyle, title: &str) -> String {
     let t = title.trim();
     match icons {
         IconStyle::Ascii => format!("[ {t} ]"),
-        // U+E0B6 / U+E0B4: rounded powerline caps frame the title like a
-        // tab on a folder.
-        IconStyle::Powerline => format!("\u{e0b6} {t} \u{e0b4}"),
+        IconStyle::Powerline => format!(" {t} "),
         IconStyle::Unicode => format!("[ ◆ {t} ◆ ]"),
     }
 }
@@ -242,10 +242,7 @@ mod tests {
             "[ ◆ editor ◆ ]"
         );
         assert_eq!(decorate_title(IconStyle::Ascii, "editor"), "[ editor ]");
-        assert_eq!(
-            decorate_title(IconStyle::Powerline, "editor"),
-            "\u{e0b6} editor \u{e0b4}"
-        );
+        assert_eq!(decorate_title(IconStyle::Powerline, "editor"), " editor ");
     }
 
     #[test]
