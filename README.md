@@ -4,6 +4,7 @@ Shared TUI helpers reused across [`ebman`](https://github.com/tombaldwin/ebman) 
 
 ## What's in it
 
+- **`chrome`** — the shared panel vocabulary: `rounded_block` / `titled_block` (`[ ◆ title ◆ ]`, ascii and Powerline variants), `pill` / `pill_chain`, `sep`, `kv`, and `join_fields_to_fit` / `hints_to_fit`, which drop whole fields or key hints rather than let the right edge cut one in half. Apps pass a small `Chrome` palette built from their own theme.
 - **`font_probe`** — Powerline-glyph terminal probe (CSI device-status interrogation; returns whether the active font advances `U+E0B0` to a single cell).
 - **`overlay`** — `OverlaySize` enum + `centered_overlay(category, frame)` helper so every modal overlay (text dump, picker, action confirm, palette) sizes from one table.
 - **`theme`** — `IconStyle` enum + `contrast_text_for(bg)` WCAG-aware foreground picker so themed pills stay readable against arbitrary backgrounds.

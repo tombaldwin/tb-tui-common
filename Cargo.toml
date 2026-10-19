@@ -1,10 +1,10 @@
 [package]
 name = "tb-tui-common"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 rust-version = "1.91"
 authors = ["Tom Baldwin <tom@polymorphism.co.uk>"]
-description = "Shared TUI helpers (Powerline probe, overlay sizing, theme contrast, splash render, atomic-write) reused by ebman and pgman."
+description = "Shared TUI helpers (panel chrome, Powerline probe, overlay sizing, theme contrast, splash render, atomic-write) reused by ebman and pgman."
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tombaldwin/tb-tui-common"
 homepage = "https://github.com/tombaldwin/tb-tui-common"
