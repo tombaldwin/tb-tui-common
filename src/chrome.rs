@@ -113,7 +113,7 @@ pub fn pill_chain(items: &[(String, Color, Color)], c: &Chrome) -> Vec<Span<'sta
     } else {
         for (i, (text, fg, bg)) in items.iter().enumerate() {
             if i > 0 {
-                spans.push(Span::raw(" "));
+                spans.push(sep(c));
             }
             spans.push(pill(text, *fg, *bg));
         }
@@ -285,14 +285,17 @@ mod tests {
     }
 
     #[test]
-    fn pill_chains_flow_in_powerline_and_space_out_otherwise() {
+    fn pill_chains_flow_in_powerline_and_take_seps_otherwise() {
         let items = vec![
             ("RO".to_string(), Color::Black, Color::Green),
             ("TAP".to_string(), Color::Black, Color::Blue),
         ];
         let plain = pill_chain(&items, &chrome(IconStyle::Unicode));
         let text: String = plain.iter().map(|s| s.content.as_ref()).collect();
-        assert_eq!(text, " RO   TAP ");
+        assert_eq!(
+            text, " RO   •   TAP ",
+            "joined by sep, as header fields are"
+        );
         let pl = pill_chain(&items, &chrome(IconStyle::Powerline));
         assert_eq!(pl.len(), 5, "lead-in, pill, bridge, pill, tail");
         assert_eq!(
