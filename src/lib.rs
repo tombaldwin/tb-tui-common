@@ -2,6 +2,9 @@
 //! `pgman` (and any future siblings).
 //!
 //! What lives here:
+//! - [`chrome`] — the shared drawing vocabulary: rounded panels,
+//!   decorated titles, pills, separators, `key: value` fields and
+//!   whole-field / whole-hint width fitting.
 //! - [`font_probe`] — pre-TUI terminal probe that decides whether the
 //!   user's font renders Powerline / Nerd Font glyphs at one cell each.
 //! - [`overlay`] — centred-popup sizing (`OverlaySize` categories +
@@ -13,6 +16,7 @@
 //! Postgres connection code, EB-flavoured theme palettes, …). Pure
 //! reusable plumbing only.
 
+pub mod chrome;
 pub mod font_probe;
 pub mod overlay;
 pub mod splash;
