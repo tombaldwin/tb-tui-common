@@ -65,14 +65,14 @@ pub fn rounded_block(c: &Chrome, active: bool) -> Block<'static> {
 }
 
 /// A panel title as it sits in the border: `[ ◆ name ◆ ]`, `[ name ]`
-/// in ascii, rounded powerline caps in Powerline.
+/// in ascii, and ` name ` in Powerline — no caps. The rounded caps
+/// (U+E0B6 / U+E0B4) were tried and dropped: ebman never rendered them,
+/// and in pgman they read as clutter on every panel.
 pub fn decorate_title(icons: IconStyle, title: &str) -> String {
     let t = title.trim();
     match icons {
         IconStyle::Ascii => format!("[ {t} ]"),
-        // U+E0B6 / U+E0B4: rounded powerline caps frame the title like a
-        // tab on a folder.
-        IconStyle::Powerline => format!("\u{e0b6} {t} \u{e0b4}"),
+        IconStyle::Powerline => format!(" {t} "),
         IconStyle::Unicode => format!("[ ◆ {t} ◆ ]"),
     }
 }
@@ -113,7 +113,7 @@ pub fn pill_chain(items: &[(String, Color, Color)], c: &Chrome) -> Vec<Span<'sta
     } else {
         for (i, (text, fg, bg)) in items.iter().enumerate() {
             if i > 0 {
-                spans.push(Span::raw(" "));
+                spans.push(sep(c));
             }
             spans.push(pill(text, *fg, *bg));
         }
@@ -206,8 +206,19 @@ pub fn hints_to_fit(line: &str, available: u16) -> String {
         out.push_str(if out.is_empty() { " " } else { "  " });
         out.push_str(hint);
     }
+    // Cut by display width, not by char: a wide glyph is two cells,
+    // and counting it as one leaves the line wider than `available`.
     if width(&out) > available {
-        out = out.chars().take(available).collect();
+        let mut cut = String::new();
+        for ch in out.chars() {
+            let mut next = cut.clone();
+            next.push(ch);
+            if width(&next) > available {
+                break;
+            }
+            cut = next;
+        }
+        out = cut;
     }
     out
 }
@@ -242,10 +253,7 @@ mod tests {
             "[ ◆ editor ◆ ]"
         );
         assert_eq!(decorate_title(IconStyle::Ascii, "editor"), "[ editor ]");
-        assert_eq!(
-            decorate_title(IconStyle::Powerline, "editor"),
-            "\u{e0b6} editor \u{e0b4}"
-        );
+        assert_eq!(decorate_title(IconStyle::Powerline, "editor"), " editor ");
     }
 
     #[test]
@@ -288,14 +296,26 @@ mod tests {
     }
 
     #[test]
-    fn pill_chains_flow_in_powerline_and_space_out_otherwise() {
+    fn a_hint_wider_than_the_line_is_cut_to_display_width() {
+        // Each 日 is two cells: a char count keeps " 日日日" — seven
+        // cells — in a four-cell line.
+        let cut = hints_to_fit(" 日日日日日日", 4);
+        assert!(Span::raw(cut.as_str()).width() <= 4, "{cut:?}");
+        assert_eq!(cut, " 日");
+    }
+
+    #[test]
+    fn pill_chains_flow_in_powerline_and_take_seps_otherwise() {
         let items = vec![
             ("RO".to_string(), Color::Black, Color::Green),
             ("TAP".to_string(), Color::Black, Color::Blue),
         ];
         let plain = pill_chain(&items, &chrome(IconStyle::Unicode));
         let text: String = plain.iter().map(|s| s.content.as_ref()).collect();
-        assert_eq!(text, " RO   TAP ");
+        assert_eq!(
+            text, " RO   •   TAP ",
+            "joined by sep, as header fields are"
+        );
         let pl = pill_chain(&items, &chrome(IconStyle::Powerline));
         assert_eq!(pl.len(), 5, "lead-in, pill, bridge, pill, tail");
         assert_eq!(
